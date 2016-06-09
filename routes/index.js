@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var app = express();
-var dbHelpers = require('aaron/db-helpers.js');
+var dbHelpers = require('../modules/db-helpers.js');
 
 var mongodb = require('mongodb');
 
