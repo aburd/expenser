@@ -1,0 +1,23 @@
+extends layout
+
+block content
+	h1= title
+	form(name="add-expense", method="post", action="/add-expense")
+		.form-group
+			label(for="description") Description
+			input.form-control#input-description(type='text' name='add-description' placeholder='e.g. All of the chicago-style pizza')
+		.form-group
+			label(for="amount") Amount
+			input.form-control#input-amount(type="text" name='add-amount' placeholder='20')
+		.form-group
+			label(for='category') Category
+			select.form-control#category(name='add-category')
+				option(value='' disabled selected) Select a category
+				option(value='food') Food
+				option(value='leisure') Leisure
+				option(value='living') Living
+		button#submit-expense.btn.btn-primary(type='submit') Submit
+	p.text-right
+		a(href='/') Back to Expenses
+
+// remember to add form validation

@@ -1,0 +1,58 @@
+body, html { margin: 0; padding: 0; }
+body {
+  padding: 40px;
+  color: #e1e1e1;
+  background: linear-gradient(40deg, #222, #333); 
+}
+input {
+	color: #333;
+}
+a {
+  color: #00B7FF;
+}
+
+/*FEEDBACK BOX*/
+#feedback-box {
+  padding: 5px 5px 20px;
+  background: #4b2;
+  text-align: center;
+  border-radius: 1px;
+}
+.control-holder {
+	margin-bottom: -2px;
+}
+.glyphicon-remove:hover {
+  background-color: #2a2;
+}
+
+/*TOP TITLE STUFF*/
+#character {width: 100%;}
+#period {
+	border: 1px solid #ddd;
+	background-color: #333;
+}
+
+/*EXPENSES && REVENUE CSS*/
+#expense-sheet {
+	padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 1px;
+}
+li.expenses_list_item {
+	padding: 7px 0;
+  border-bottom: 1px solid #bbb;
+  list-style: none;
+}
+.date { font-weight: bold; }
+.time { color: #888; }
+.description {font-weight: bold;}
+.category { text-transform: capitalize; }
+.amount-col { }
+.amount {
+	font-weight: bold;
+}
+.expenses-total-box {
+  font-size: 28px;
+  font-weight: bold;
+  margin-top: 10px;
+}

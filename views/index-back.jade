@@ -1,0 +1,33 @@
+extends layout
+
+block content
+	if feedback
+		.feedback-box= feedback
+	h1= title
+	p for Aaron
+	p.text-right
+		a(href='./new-expense') New Expense
+	.container-fluid
+		.row
+			ol#expenses_list.col-xs-12
+				each expense, i in expenses
+					li.expenses_list_item(value="#{i+1}")
+						.row
+							.left.text-left.col-xs-6.info-col
+								span.date #{expense.date.toDateString()} &nbsp;
+								span.time #{expense.date.toTimeString()}	
+								br
+								span.category #{expense.category}
+								br
+								span.description Description: #{expense.description}
+							.right.text-right.col-xs-6.amount-col
+								span.amount ¥#{expense.amount}
+								br
+								br
+								button.btn.btn-danger.btn-xs Remove 
+								&nbsp;
+								button.btn.btn-primary.btn-xs Edit
+		.row
+			.col-xs-12
+				p.expenses-total-box.text-right ¥
+					span= total
