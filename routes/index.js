@@ -1,9 +1,12 @@
 var express = require('express');
 var router = express.Router();
-var app = express();
-var dbHelpers = require('../modules/db-helpers.js');
-
+var assert = require('assert');
 var mongodb = require('mongodb');
+var app = express();
+var ObjectId = mongodb.ObjectID;
+
+var aggregateByDate = require('../myModules/aggregateDate.js');
+var dbHelpers = require('../myModules/db-helpers.js');
 
 // test middleware
 var reqUtc = (req, res, next) => {
@@ -25,7 +28,7 @@ router.get('/', function(req, res) {
     if (err) {
       console.log('Error establishing connection to server. Returned with err: ', err);
     } else {
-      var collection = db.collection('expensesTest');
+      var collection = db.collection('revenuesTest');
 
       collection.find().sort({
         date: -1
@@ -55,7 +58,12 @@ router.get('/', function(req, res) {
             feedback: app.locals.feedback
           });
         } else {
-          res.send('No expenses created yet.');
+          app.locals.feedback = 'Try the new expense button, yo!';
+          res.render('index', {
+            title: 'Expenses',
+            days: ['No expenses added yet'],
+            feedback: app.locals.feedback
+          });
         }
         db.close();
       });
@@ -71,6 +79,29 @@ router.get('/new-expense', function(req, res) {
     title: 'New Expense'
   })
 });
+
+//++++++++++++++
+//DELETE EXPENSE
+//++++++++++++++
+router.post('/delete', function(req, res) {
+  console.log('POST request of delete type sent.');
+  var MongoClient = mongodb.MongoClient;
+  var url = 'mongodb://localhost:27017/finance';
+
+  MongoClient.connect(url, function(err, db) {
+    assert.equal(null, err);
+
+    db.collection('expensesTest').deleteOne({
+      '_id': ObjectId(req.body.id)
+    }, function(err, r) {
+      assert.equal(null, err);
+      assert.equal(1, r.deletedCount);
+      console.log('Document successfully deleted');
+
+      db.close();
+    });
+  });
+})
 
 //++++++++++++++
 // ADD'S EXPENSE
@@ -105,10 +136,6 @@ router.post('/add-expense', function(req, res) {
       });
     }
   });
-});
-
-router.delete('delete/:id', (req, res) => {
-
 });
 
 

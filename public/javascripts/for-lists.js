@@ -1,6 +1,8 @@
 (function() {
 
+  //********************
   //cutoff function
+  //********************
   var c = document.getElementById('cutoff');
   var s = document.getElementById('period');
   c.addEventListener('keyup', function(event) {
@@ -55,6 +57,13 @@
   }, 5000)
   $('.glyphicon-remove').click(function(event) {
     $(fbb).slideUp(200);
+  });
+
+  //********************
+  //REMOVE button
+  //********************
+  $('.remove-button').click(function(event) {
+    $(this).closest('li').slideUp();
   });
 
 })();

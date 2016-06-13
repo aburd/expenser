@@ -7,6 +7,9 @@ block content
 			label(for="description") Description
 			input.form-control#input-description(type='text' name='add-description' placeholder='e.g. All of the chicago-style pizza')
 		.form-group
+			label(for="date") Date
+			input.form-control#datepicker(type='text' name='add-date' placeholder='Date')
+		.form-group
 			label(for="amount") Amount
 			input.form-control#input-amount(type="text" name='add-amount' placeholder='20')
 		.form-group
@@ -19,5 +22,6 @@ block content
 		button#submit-expense.btn.btn-primary(type='submit') Submit
 	p.text-right
 		a(href='/') Back to Expenses
+	block footerex
+		script $('#datepicker').datepicker();
 
-// remember to add form validation

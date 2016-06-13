@@ -26,25 +26,30 @@ block content
 		.row#expense-sheet
 			each day, i in days
 				h3 #{day}
-				ol#expenses_list.col-xs-12(val='#{i + 1}')
-					each expense, i in expenses[day].expenses
-						- dailyTotal = expenses[day].total
-						li.expenses_list_item(value="#{i + 1}")
-							.row
-								.left.text-left.col-xs-6.info-col
-									span.description #{expense.description}
-									br
-									span.time #{expense.date.toTimeString()}	
-									br
-									span.category Category: #{expense.category}
-								.right.text-right.col-xs-6.amount-col
-									span.amount ¥#{expense.amount}
-									br
-									br
-									button.btn.btn-danger.btn-xs(method='delete' href='delete/#{expense._id}') Remove 
-									&nbsp;
-									button.btn.btn-primary.btn-xs Edit
-					.row
-						.col-xs-12
-							p.expenses-total-box.text-right
-								span.total ¥#{dailyTotal}
+				if expenses
+					ol#expenses_list.col-xs-12(val='#{i + 1}')
+						each expense, i in expenses[day].expenses
+							- dailyTotal = expenses[day].total
+							li.expenses_list_item(value="#{i + 1}")
+								.row
+									.left.text-left.col-xs-6.info-col
+										span.description #{expense.description}
+										br
+										span.time #{expense.date.toTimeString()}	
+										br
+										span.category Category: #{expense.category}
+									.right.text-right.col-xs-6.amount-col
+										span.amount ¥#{expense.amount}
+										br
+										br
+										form.delete-form(name='delete-form' method='post' action='/delete')
+											input#input-id(type='hidden' name='id' value='#{expense._id}')
+											button.remove-button.btn.btn-danger.btn-xs(type='submit') Remove 
+										&nbsp;
+										button.btn.btn-primary.btn-xs Edit
+						.row
+							.col-xs-12
+								p.expenses-total-box.text-right
+									span.total ¥#{dailyTotal}
+	block footerex
+		script(src='/javascripts/for-lists.js')

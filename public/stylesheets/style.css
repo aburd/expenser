@@ -56,3 +56,4 @@ li.expenses_list_item {
   font-weight: bold;
   margin-top: 10px;
 }
+.delete-form { display: inline; }
