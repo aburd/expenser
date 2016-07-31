@@ -2,13 +2,53 @@ extends layout
 
 block content
 	.container-fluid
+
+		// Feedback box stuff
 		if feedback
 			#feedback-box
 				p.text-right.control-holder
 					span.glyphicon.glyphicon-remove(aria-label="remove")
 				span #{feedback}
-		h1= title
-		.row
+		#feedback-box-2(style='display:none')
+			p.text-right.control-holder
+				span.glyphicon.glyphicon-remove(aria-label="remove")
+			span Category Added!
+
+		// Title of page
+		h1
+			span.glyphicon.glyphicon-jpy
+			span= title
+			span.glyphicon.glyphicon-jpy
+
+		p#protip Protip:&nbsp;
+			span= protip
+
+		// Start Menu Controls here
+		.row.keys-menu
+			.col-sm-2
+				button.key.c-ctrl.menu-ctrl(href='./new-expense')
+					span ctrl
+			.col-sm-2.plus
+				|+
+			.col-sm-2
+				button.key.c69.menu-ctrl(href='./new-expense')
+					span E
+				span Expense
+			.col-sm-2
+				button.key.c73.menu-ctrl#new-income-btn() 
+					span I
+				span Income
+			.col-sm-2
+				button.key.c67.menu-ctrl#new-category-btn() 
+					span C
+				span Category
+			.col-sm-2
+				button.key.c77.menu-ctrl#expense-measure-btn() 
+					span M
+				span Measure
+
+		// Start Grandpa Simpson
+		.row#expense-measure-row.popdown-box(style="display:none")
 			.col-sm-2
 				img#character(src='images/grandpasimpson.jpg')
 			.col-sm-10
@@ -20,36 +60,81 @@ block content
 						option(value='365') year
 					| ?
 				input#cutoff(type="text" autofocus)
-		.row
-			p.text-right
-				a.btn.btn-primary(href='./new-expense') New Expense
+
+		// New expense box
+		.row#new-expense-row.popdown-box(style="display:none")
+			h3 New Expense
+			.col-xs-12
+					form(name="add-expense", method="post", action="expense/add")
+						.form-group
+							label(for="description") Description
+							input.form-control#input-description(type='text' name='add-description' placeholder='e.g. All of the chicago-style pizza' autofocus)
+						.form-group
+							label(for="date") Date
+							input.form-control#datepicker(type='text' name='add-date' placeholder='Date')
+						.form-group
+							label(for="amount") Amount
+							input.form-control#input-amount(type="text" name='add-amount' placeholder='20')
+						.form-group
+							label(for='category') Category
+							select.form-control#category(name='add-category')
+								option(value='' disabled selected) Select a category
+								each category, i in categories
+									option(value='#{category.name}') #{category.name}
+						button#submit-expense.btn.btn-primary(type='submit') Submit
+
+		// New category box
+		.row#new-category-row.popdown-box(style="display:none")
+			.col-xs-12
+				form#add-category-form(name="add-category-form", method="post")
+					.form-group
+						label(for="add-name") Category Name
+						input.form-control#add-name(type="text" placeholder="Work" name="add-name")
+					.form-group
+						label(for="add-for") For
+						select.form-control(name="add-for")
+							option(value="" disabled selected) What is this for?
+							option(value="incomes") Incomes
+							option(value="expenses") Expenses
+					.form-group.text-right
+						button.btn.btn-xs.btn-primary(type='submit' disabled) Submit
+
+		// Start expense sheet
 		.row#expense-sheet
 			each day, i in days
-				h3 #{day}
-				if expenses
-					ol#expenses_list.col-xs-12(val='#{i + 1}')
-						each expense, i in expenses[day].expenses
-							- dailyTotal = expenses[day].total
-							li.expenses_list_item(value="#{i + 1}")
-								.row
-									.left.text-left.col-xs-6.info-col
-										span.description #{expense.description}
-										br
-										span.time #{expense.date.toTimeString()}	
-										br
-										span.category Category: #{expense.category}
-									.right.text-right.col-xs-6.amount-col
-										span.amount ¥#{expense.amount}
-										br
-										br
-										form.delete-form(name='delete-form' method='post' action='/delete')
-											input#input-id(type='hidden' name='id' value='#{expense._id}')
-											button.remove-button.btn.btn-danger.btn-xs(type='submit') Remove 
-										&nbsp;
-										button.btn.btn-primary.btn-xs Edit
-						.row
-							.col-xs-12
-								p.expenses-total-box.text-right
-									span.total ¥#{dailyTotal}
-	block footerex
-		script(src='/javascripts/for-lists.js')
+				h3 #{day.adjustedDate}
+				ol#expenses_list.col-xs-12(val='#{i + 1}')
+					each expense, i in day.expenses.sort((a,b)=>{ return b.amount < a.amount; })
+						- dailyTotal = day.total
+						li.expenses_list_item(value="#{i + 1}")
+							.row
+								.left.text-left.col-xs-6.info-col
+									span.description #{expense.description}
+									br
+									input.expense-checkbox(type='checkbox')
+									span.time #{expense['date-created'].toTimeString()}	
+									br
+									span.category Category: #{expense.category}
+								.right.text-right.col-xs-6.amount-col
+									span.amount ¥#{expense.amount}
+									br
+									br
+									form.delete-form(name='delete-form' method='post' action='/delete')
+										input#input-id(type='hidden' name='id' value='#{expense.theId}')
+										button.remove-button.btn.btn-danger.btn-xs(type='submit') Remove 
+									br
+									a.btn.btn-primary.btn-xs(href='edit/#{expense.theId}') Edit
+					.row
+						.col-xs-12
+							p.expenses-total-box.text-right
+								span.total ¥#{dailyTotal}
+block footerex
+	script(src='/javascripts/lodash.core.min.js')
+	script(src='/javascripts/validate.min.js')
+	script(src='/javascripts/for-lists.js')
+	script(src='/javascripts/form-validation.js')
+	script(src='/javascripts/keys.js')
+	script 
+		$('#datepicker').datepicker()
+		$('#datepicker').datepicker('option', 'dateFormat', 'yy-mm-dd');
+		$( "#datepicker" ).datepicker( "option",$.datepicker.regional[ "ja" ] );

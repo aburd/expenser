@@ -12,15 +12,9 @@ var aggregateByDate = () => {
       [{
         $group: {
           _id: {
-            day: {
-              $dayOfYear: '$date'
-            },
-            monthDay: {
-              $dayOfMonth: '$date'
-            },
-            year: {
-              $year: '$date'
-            }
+            day: { $dayOfYear: '$date' },
+            monthDay: { $dayOfMonth: '$date' },
+            year: { $year: '$date' }
           },
           expenses: {
             $push: {

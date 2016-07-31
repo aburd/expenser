@@ -47,6 +47,32 @@
   }
 
   //**************
+  // NEW CATEGORY BOX
+  //**************
+  
+  $('#add-category-form button').click(function (event) {
+    event.preventDefault();
+    var data = {
+      'add-name': $('#add-category-form input').first().val()
+    }
+    $.ajax({
+      url: 'categories/add-category',
+      type: 'POST',
+      data: data,
+      success: cleanUp()
+    });
+
+    function cleanUp() {
+      $('input[name="add-name"]').val('');
+      $('#feedback-box-2').slideToggle(500);
+      setTimeout(function() {
+        $('#feedback-box-2').slideToggle(500);
+      }, 2000);
+    }
+
+  });
+
+  //**************
   // FEEDBACK BOX
   //**************
   var fbb = document.getElementById('feedback-box');
@@ -55,9 +81,11 @@
       $(fbb).slideUp()
     };
   }, 5000)
-  $('.glyphicon-remove').click(function(event) {
-    $(fbb).slideUp(200);
-  });
+  if ($('.glyphicon-remove')) {
+    $('.glyphicon-remove').click(function(event) {
+      $(fbb).slideUp(200);
+    });
+  }
 
   //********************
   //REMOVE button

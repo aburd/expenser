@@ -21,3 +21,17 @@ exports.divideByDate = (arr) => {
   });
   return res;
 }
+
+exports.createExpense = function(data) {
+  var isoDateArr = data['add-date'].split('-').map((a) => {
+    return parseInt(a);
+  })
+  var now = new Date();
+  return {
+    amount: parseInt(data['add-amount']),
+    description: data['add-description'],
+    date: new Date(isoDateArr[0], isoDateArr[1] - 1, isoDateArr[2], now.getHours(), now.getMinutes()),
+    'date-created': new Date(),
+    category: data['add-category']
+  }
+}

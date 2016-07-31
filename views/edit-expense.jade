@@ -2,19 +2,20 @@ extends layout
 
 block content
 	h1= title
-	form(name="add-expense", method="post", action="add")
+	form(name="edit-expense", method="post", action="/update")
+		input(type='hidden' name='the-id' value='#{expense._id}')
 		.form-group
 			label(for="description") Description
-			input.form-control#input-description(type='text' name='add-description' placeholder='e.g. All of the chicago-style pizza' autofocus)
+			input.form-control#input-description(type='text' name='add-description' value='#{expense.description}')
 		.form-group
 			label(for="date") Date
-			input.form-control#datepicker(type='text' name='add-date' placeholder='Date')
+			input.form-control#datepicker(type='text' name='add-date' value='#{theDate}')
 		.form-group
 			label(for="amount") Amount
-			input.form-control#input-amount(type="text" name='add-amount' placeholder='20')
+			input.form-control#input-amount(type="text" name='add-amount' value='#{expense.amount}')
 		.form-group
 			label(for='category') Category
-			select.form-control#category(name='add-category')
+			select.form-control#category(name='add-category' value='#{expense.category}')
 				option(value='' disabled selected) Select a category
 				each category, i in categories
 					option(value='#{category.name.toLowerCase()}') #{category.name}
@@ -25,5 +26,5 @@ block footerex
 	script 
 		$('#datepicker').datepicker()
 		$('#datepicker').datepicker('option', 'dateFormat', 'yy-mm-dd');
-		$( "#datepicker" ).datepicker( "option",$.datepicker.regional[ "ja" ] );
+		$('#datepicker').val('#{theDate}');
 

@@ -1,9 +1,17 @@
 var express = require('express');
+var app = express();
 var router = express.Router();
 var assert = require('assert');
+var dateFormat = require('dateformat');
+var _ = require('lodash');
+
 var mongodb = require('mongodb');
-var app = express();
+var MongoClient = mongodb.MongoClient;
 var ObjectId = mongodb.ObjectID;
+var url = 'mongodb://localhost:27017/finance';
+var mongoose = require('mongoose');
+var addCategory = require('../models/category-schema.js');
+var Income = require('../models/schema.js');
 
 var aggregateByDate = require('../myModules/aggregateDate.js');
 var dbHelpers = require('../myModules/db-helpers.js');
@@ -20,130 +28,187 @@ router.use(reqUtc);
 //HOME PAGE DISPLAY ALL EXPENSES
 //++++++++++++++
 router.get('/', function(req, res) {
-  var MongoClient = mongodb.MongoClient;
-
-  var url = 'mongodb://localhost:27017/finance';
-
-  MongoClient.connect(url, function(err, db) {
-    if (err) {
-      console.log('Error establishing connection to server. Returned with err: ', err);
-    } else {
-      var collection = db.collection('revenuesTest');
-
-      collection.find().sort({
-        date: -1
-      }).toArray(function(err, result) {
-        if (err) {
-          console.log('Err in parsing information at db: ', err);
-        } else if (result.length) {
-
-          // Get total
-          var total = result
-            .map((a) => {
-              return parseInt(a['amount']);
-            })
-            .reduce((a, b) => {
-              return a + b;
-            });
-
-          // Get objects by date
-          var byDate = dbHelpers.divideByDate(result);
-          var days = Object.keys(byDate);
-
-          res.render('index', {
-            title: 'Expenses',
-            expenses: byDate,
-            days: days,
-            total: total,
-            feedback: app.locals.feedback
-          });
-        } else {
-          app.locals.feedback = 'Try the new expense button, yo!';
-          res.render('index', {
-            title: 'Expenses',
-            days: ['No expenses added yet'],
-            feedback: app.locals.feedback
-          });
-        }
-        db.close();
-      });
-    }
-  });
-});
-
-//++++++++++++++
-//NEW EXPENSE
-//++++++++++++++
-router.get('/new-expense', function(req, res) {
-  res.render('new-expense', {
-    title: 'New Expense'
-  })
-});
-
-//++++++++++++++
-//DELETE EXPENSE
-//++++++++++++++
-router.post('/delete', function(req, res) {
-  console.log('POST request of delete type sent.');
-  var MongoClient = mongodb.MongoClient;
-  var url = 'mongodb://localhost:27017/finance';
 
   MongoClient.connect(url, function(err, db) {
     assert.equal(null, err);
 
-    db.collection('expensesTest').deleteOne({
-      '_id': ObjectId(req.body.id)
-    }, function(err, r) {
-      assert.equal(null, err);
-      assert.equal(1, r.deletedCount);
-      console.log('Document successfully deleted');
+    aggregateByDate(db, (result) => {
 
-      db.close();
-    });
-  });
-})
+      if (result.length) {
+        // Sort results
+        var sortedRes = result.sort((day1, day2) => {
+          return day2['_id'].monthDay - day1['_id'].monthDay
+        });
+        // Add some properties like adjusted date and avg hour
+        sortedRes.forEach((day) => {
+          var offset = new Date().getTimezoneOffset() * 60 * 1000;
+          var timeVal = new Date(day['_id'].year, day['_id'].month - 1, day['_id'].monthDay).valueOf();
+          day.adjustedDate = dateFormat(timeVal - offset, 'dddd, mmmm dS');
+        });
 
-//++++++++++++++
-// ADD'S EXPENSE
-//++++++++++++++
-router.post('/add-expense', function(req, res) {
-  var MongoClient = mongodb.MongoClient;
+        // Get categories
+        db.collection('categories').find({})
+          .toArray((err, categories) => {
+            if(err)
+              console.log(err)
 
-  var url = 'mongodb://localhost:27017/finance';
+            var tips = ['Drink half a beer today, half tomorrow.','Instead of eating lunch, listen to Wu-Tang','Do not think about beer...','Read a book?','Light up some newspaper shreddings instead of a cigarette!','Just get buck for fun.']
+            var randomTip = tips[_.random(0, tips.length - 1)]
+            res.render('index', {
+              title: 'Save da papuh!',
+              protip: randomTip,
+              days: sortedRes,
+              categories: categories,
+              feedback: app.locals.feedback
+            });
 
-  MongoClient.connect(url, function(err, db) {
-    if (err) {
-      console.log('Couldn\'t connect to db: ', err);
-    } else {
-      console.log('Connected to db to create data.');
+            db.close();
+          })     
 
-      var collection = db.collection('expensesTest');
-      var expense = {
-        amount: parseInt(req.body['add-amount']),
-        description: req.body['add-description'],
-        category: req.body['add-category'],
-        date: new Date()
-      }
-      collection.insertOne(expense, function(err, result) {
-        if (err) {
-          console.log('Problem writing to db: ', err);
-        } else {
-          console.log('Write successful with: ', result)
-          app.locals.feedback = "Added successfully!";
-          res.redirect('/');
-        }
+      } else {
+        app.locals.feedback = 'Try the new expense button, yo!';
+        res.render('index', {
+          title: 'You keepin\' track?',
+          // add dummy object
+          days: [{
+            test: 'No expenses added yet'
+          }],
+          feedback: app.locals.feedback
+        });
+
         db.close();
-      });
-    }
+      }
+      
+    });
+
   });
 });
 
 
+//expenses
+
+
+
+//++++++++++++++
+//++++++++++++++
+// INCOMES =====
+//++++++++++++++
+//++++++++++++++
+
+//++++++++++++++
+//NEW INCOME
+//++++++++++++++
+router.post('/income/new', (req, res) => {
+
+  mongoose.connect(url);
+  var db = mongoose.connection;
+  db.on('error', console.log.bind(console, 'Error connecting to db.'));
+  db.once('open', () => {
+
+    var newIncome = new Income(req.body);
+
+    newIncome.save((err, theNewIncome) => {
+      assert.equal(null, err)
+      console.log(theNewIncome, ' created at ', Date.now())
+      res.send(200)
+      db.close();
+    })
+
+  })
+})
+
 //+++++++++++++++++
-//DATABASE API TEST
+// INCOMES POST
 //+++++++++++++++++
+router.post('/incomes', (req, res) => {
+  mongoose.connect(url)
+  var db = mongoose.connection
+
+  db.on("error", console.log.bind(console, 'Error connecting to db.'))
+  db.once('open', () => {
+    Income.create(req.body, (err, document) => {
+      assert.equal(null, err)
+
+      res.send(document)
+    })
+  })
+
+})
+
+//+++++++++++++++++
+// INCOMES GET
+//+++++++++++++++++
+router.get('/incomes', (req, res) => {
+  mongoose.connect(url)
+  var db = mongoose.connection
+
+  db.once('open', () => {
+    Income.find({}, (err, incomes) => {
+      assert.equal(null, err);
+
+      res.send(incomes)
+      db.close()
+    })
+  })
+})
+
+//+++++++++++++++++
+// INCOMES GET
+//+++++++++++++++++
+router.post('/incomes/add', (req, res) => {
+  mongoose.connect(url)
+  var db = mongoose.connection
+
+  db.once('open', () => {
+    var income1 = new Income(req.body)
+
+    income1.save();
+    console.log('New income added')
+    income1.findThisCategory((err, incomes) => {
+      res.send(incomes)
+      db.close()
+    })
+
+  })
+})
+
+//++++++++++
+//GET BY category
+//++++++++++
+router.get('/incomes/api/:cat', (req, res) => {
+  var query = req.params.cat
+
+  mongoose.connect(url)
+  var db = mongoose.connection
+  db.on('err', console.log.bind('error'), console)
+
+  db.once('open', () => {
+    Income.find({
+      category: query
+    }, (err, incomes) => {
+      assert.equal(null, err)
+      console.log('Incomes request fulfilled.')
+      console.log(incomes.length)
+      if (incomes.length > 0)
+        res.send(incomes)
+      else
+        res.send('No incomes match this query.')
+
+      db.close()
+    })
+  })
+})
+
+
 router.get('/expenses/api', function(req, res) {
-  console.log(req.url);
+  MongoClient.connect(url, (err, db) => {
+    assert.equal(null, err);
+    db.collection('expensesTest').find({}).toArray((err, result) => {
+      assert.equal(null, err);
+
+      res.send(result)
+    });
+  })
 });
 
 app.get(/down.{1,5}/, function(req, res) {
